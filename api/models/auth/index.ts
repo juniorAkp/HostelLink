@@ -1,5 +1,5 @@
 import { sql } from "../../config/db";
-
+import bcrypt from "bcrypt"
 interface User {
   username: string;
   email: string;
@@ -44,12 +44,20 @@ export const createUser = async (user: User) => {
 export const loginUser = async (email: string, password: string) => {
   try {
     const result = await sql`
-      SELECT email,password,username,id FROM users WHERE email = ${email} AND password = ${password}
+      SELECT id, email, username, password FROM users 
+      WHERE email = ${email} AND is_verified = true
+      LIMIT 1
     `;
     if (result.length === 0) {
-      throw new Error("Invalid email or password");
+      throw new Error("Invalid credentials");
     }
-    return result[0];
+    const user = result[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new Error("Invalid credentials");
+    }
+    const { password: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   } catch (error) {
     console.error("Error logging in user:", error);
     throw new Error("Failed to log in user");
