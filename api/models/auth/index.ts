@@ -289,3 +289,31 @@ export const updateUserProfile = async (
     throw new Error("Failed to update user profile");
   }
 };
+
+export const getUserDetails = async (userId: number) => {
+  try {
+    const result = await sql`
+      SELECT 
+        id, 
+        username, 
+        email, 
+        student_id, 
+        date_of_birth, 
+        phone_number,
+        gender,
+        profile_url,
+        created_at,
+        last_login,
+        ghana_card_number,
+        is_verified,
+      FROM users WHERE id = ${userId}
+    `;
+    if (result.length === 0) {
+      throw new Error("User not found");
+    }
+    return result[0];
+  } catch (error) {
+    console.error("Error getting user details:", error);
+    throw new Error("Failed to get user details");
+  }
+};

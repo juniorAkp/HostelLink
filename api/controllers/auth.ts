@@ -6,10 +6,10 @@ import {
   createUser,
   deletePasswordVerification,
   deleteToken,
-  getUserByEmail,
   getUserById,
   getUserByResetToken,
   getUserByToken,
+  getUserDetails,
   loginUser,
   updateUserPassword,
   updateUserProfile,
@@ -69,6 +69,7 @@ export const register = async (req: Request, res: Response) => {
       .json({ message: "Internal server error", success: false });
   }
 };
+
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
@@ -301,3 +302,27 @@ export const updateProfile = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getUserProfile = async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+  if (!userId) {
+    return res.status(401).json({
+      message: "Unauthorized",
+      success: false,
+    });
+  }
+  try {
+    const user = await getUserDetails(userId);
+    return res.status(200).json({
+      message: "User profile retrieved successfully",
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    console.error("Error getting user profile:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+    });
+  }
+}
