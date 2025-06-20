@@ -24,8 +24,8 @@ export const addHostel = async (ownerId:string,hostel: Hostel) => {
   } = hostel;
   try {
     const result = await sql`
-      INSERT INTO hostels (name, owner_id, description, location, latitude, longitude, capacity, image_url)
-      VALUES (${name}, ${ownerId}, ${description}, ${location}, ${latitude}, ${longitude}, ${capacity}, ${imageUrl})
+      INSERT INTO hostels (name, owner_id, description, location, latitude, longitude, capacity, image_url, created_at)
+      VALUES (${name}, ${ownerId}, ${description}, ${location}, ${latitude}, ${longitude}, ${capacity}, ${imageUrl}, NOW())
       RETURNING *;
     `;
   
@@ -94,5 +94,18 @@ export const deleteHostelfromDb = async (hostelId: string) => {
   } catch (error) {
     console.error("Error deleting hostel:", error);
     throw new Error("Failed to delete hostel");
+  }
+}
+
+export const addAdminToHostel = async (hostelId: string, adminId: string) => {
+  try {
+    await sql`
+      INSERT INTO hostel_admins (hostel_id, admin_id, created_at)
+      VALUES (${hostelId}, ${adminId}, NOW())
+      RETURNING *;
+    `;
+  } catch (error) {
+    console.error("Error adding admin to hostel:", error);
+    throw new Error("Failed to add admin to hostel");
   }
 }

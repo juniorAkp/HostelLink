@@ -64,7 +64,7 @@ export const initDb = async () => {
         ghana_card_number VARCHAR(50) UNIQUE,
         reset_token_expiry TIMESTAMP,
         role role NOT NULL DEFAULT 'user',
-        created_at TIMESTAMP DEFAULT NOW(),
+        created_at TIMESTAMP,
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `;
@@ -82,7 +82,7 @@ export const initDb = async () => {
         is_bookable BOOLEAN DEFAULT TRUE,
         image_url VARCHAR(255),
         status hostel_status DEFAULT 'available',
-        created_at TIMESTAMP DEFAULT NOW(),
+        created_at TIMESTAMP,
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `;
@@ -97,7 +97,7 @@ export const initDb = async () => {
         price DECIMAL(10, 2) NOT NULL,
         amenities TEXT[],
         is_bookable BOOLEAN DEFAULT TRUE,
-        created_at TIMESTAMP DEFAULT NOW(),
+        created_at TIMESTAMP ,
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `;
@@ -112,7 +112,7 @@ export const initDb = async () => {
         end_date DATE NOT NULL,
         status booking_status DEFAULT 'pending',
         total_amount DECIMAL(10, 2) NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW(),
+        created_at TIMESTAMP,
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `;
@@ -124,7 +124,7 @@ export const initDb = async () => {
         amount DECIMAL(10, 2) NOT NULL,
         status payment_status DEFAULT 'pending',
         transaction_id VARCHAR(100) UNIQUE,
-        created_at TIMESTAMP DEFAULT NOW(),
+        created_at TIMESTAMP,
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `;
@@ -135,7 +135,7 @@ export const initDb = async () => {
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         message TEXT NOT NULL,
         status notification_status DEFAULT 'unread',
-        created_at TIMESTAMP DEFAULT NOW(),
+        created_at TIMESTAMP,
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `;
@@ -145,7 +145,7 @@ export const initDb = async () => {
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         hostel_id INTEGER REFERENCES hostels(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT NOW(),
+        created_at TIMESTAMP,
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `;
@@ -154,7 +154,7 @@ export const initDb = async () => {
       id SERIAL PRIMARY KEY,
       user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
       token VARCHAR(255) NOT NULL,
-      created_at TIMESTAMP DEFAULT NOW(),
+      created_at TIMESTAMP,
       updated_at TIMESTAMP DEFAULT NOW()
     );`;
     console.log("Database initialized successfully with all tables created");

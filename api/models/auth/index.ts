@@ -30,8 +30,8 @@ export const createUser = async (user: User) => {
       throw new Error("User already exists");
     }
     const result = await sql`
-      INSERT INTO users (username, email, password, phone_number, gender,verification_token,verification_token_expiry)
-      VALUES (${user.username}, ${user.email}, ${user.hashPwd}, ${user.phone_number}, ${user.gender}, ${user.token}, NOW() + INTERVAL '1 hour')
+      INSERT INTO users (username, email, password, phone_number, gender,verification_token,verification_token_expiry,updated_at)
+      VALUES (${user.username}, ${user.email}, ${user.hashPwd}, ${user.phone_number}, ${user.gender}, ${user.token}, NOW() + INTERVAL '1 hour', NOW())
       RETURNING id, username, email, created_at, updated_at, profile_url, gender,role;
     `;
     return result[0];
@@ -132,8 +132,8 @@ export const createToken = async (userId: number, token: string) => {
       throw new Error("Token already exists");
     }
     const result = await sql`
-      INSERT INTO tokens (user_id, token) 
-      VALUES (${userId}, ${token})
+      INSERT INTO tokens (user_id, token, created_at) 
+      VALUES (${userId}, ${token}, NOW())
       RETURNING id, user_id, token;
     `;
     return result[0];

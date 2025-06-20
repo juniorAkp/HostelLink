@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { addHostel, deleteHostelfromDb, editHostel, fetchHostels } from "../models/hostels";
+import { addAdminToHostel, addHostel, deleteHostelfromDb, editHostel, fetchHostels } from "../models/hostels";
 import cloudinaryConfig from "../config/cloudinary";
 
 export const createHostel = async (req: Request, res: Response) => {
@@ -39,6 +39,7 @@ export const createHostel = async (req: Request, res: Response) => {
       capacity: Number(capacity),
       imageUrl: result.secure_url,
     });
+    await addAdminToHostel(newHostel.id, req.user?.userId);
     return res.status(201).json({
       message: "Hostel created successfully",
       hostel: newHostel,
@@ -124,7 +125,7 @@ export const updateHostel = async (req: Request, res: Response) => {
     );
     const imageUrl = req.file
       ? (
-          await cloudinary.uploader.upload(req.file.path, {
+          await cloudinaryConfig.uploader.upload(req.file.path, {
             folder: "hostels",
             resource_type: "image",
           })
@@ -165,7 +166,7 @@ export const deleteHostel = async (req: Request, res: Response) => {
         .status(404)
         .json({ message: "Hostel not found", success: false });
     }
-    await cloudinary.uploader.destroy(result[0].imageUrl, {
+    await cloudinaryConfig.uploader.destroy(result[0].imageUrl, {
       resource_type: "image",
     });
     await deleteHostelfromDb(hostelId);
