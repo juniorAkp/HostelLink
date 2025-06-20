@@ -1,9 +1,18 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import {
+  createResetToken,
+  createToken,
   createUser,
+  deletePasswordVerification,
+  deleteToken,
+  getUserByEmail,
+  getUserById,
+  getUserByResetToken,
   getUserByToken,
   loginUser,
+  updateUserPassword,
+  updateUserProfile,
   updateUserVerification,
 } from "../models/auth";
 import {
@@ -11,7 +20,8 @@ import {
   generateEmailVerificationToken,
   generateRefreshToken,
 } from "../lib/generate";
-import { sendVerificationEmail, sendWelcomeEmail } from "../helpers/sendMails";
+import { sendPasswordResetEmail, sendPasswordResetSuccessEmail, sendVerificationEmail, sendWelcomeEmail } from "../helpers/sendMails";
+import { verifyRefreshToken, verifyToken } from "../middleware/verify";
 
 export const register = async (req: Request, res: Response) => {
   // get user data from request body
@@ -71,8 +81,9 @@ export const login = async (req: Request, res: Response) => {
 
   try {
     const user = await loginUser(email, password);
-    const accessToken = generateAccessToken(user.id.toString());
-    const refreshToken = generateRefreshToken(user.id.toString());
+    const accessToken = generateAccessToken(user.id.toString(), user.role);
+    const refreshToken = generateRefreshToken(user.id.toString(), user.role);
+    await createToken(user.id, refreshToken);
     return res.status(200).json({
       message: "Login successful",
       user,
@@ -106,11 +117,10 @@ export const verifyEmail = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: "Invalid token or token expired", success: false });
     }
-    //update user is_verified to true
-
     const updatedUser = await updateUserVerification(user.id, true);
-    const accessToken = generateAccessToken(updatedUser.id);
-    const refreshToken = generateRefreshToken(updatedUser.id);
+    const accessToken = generateAccessToken(updatedUser.id, updatedUser.role);
+    const refreshToken = generateRefreshToken(updatedUser.id, updatedUser.role);
+    await createToken(user.id, refreshToken);
     await sendWelcomeEmail(updatedUser.email, updatedUser.username);
     return res
       .status(200)
@@ -126,5 +136,168 @@ export const verifyEmail = async (req: Request, res: Response) => {
     return res
       .status(500)
       .json({ message: "Internal server error", success: false });
+  }
+};
+
+export const refreshAccessToken = async (req: Request, res: Response) => {
+  const {refreshToken: oldRefreshToken} = req.body;
+  if (!oldRefreshToken) {
+    return res.status(400).json({
+      message: "Refresh token is required",
+      success: false,
+    });
+  }
+  try {
+    const decoded = verifyRefreshToken(oldRefreshToken);
+    if (typeof decoded === "object" && decoded !== null && "userId" in decoded && "role" in decoded) {
+      const newAccessToken = generateAccessToken((decoded as any).userId, (decoded as any).role);
+      const newRefreshToken = generateRefreshToken((decoded as any).userId, (decoded as any).role);
+      await deleteToken((decoded as any).userId, oldRefreshToken);
+      await createToken((decoded as any).userId, newRefreshToken);
+      return res.status(200).json({
+        message: "Access token refreshed successfully",
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        success: true,
+      });
+    } else {
+      return res.status(400).json({
+        message: "Invalid refresh token",
+        success: false,
+      });
+    }
+  } catch (error) {
+    console.error("Error refreshing access token:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+    });
+  }
+}
+ 
+export const logout = async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    return res.status(400).json({
+      message: "Refresh token is required",
+      success: false,
+    });
+  }
+  try {
+    const decoded = verifyToken(refreshToken);
+    if (typeof decoded === "object" && decoded !== null && "userId" in decoded) {
+      await deleteToken((decoded as any).userId, refreshToken);
+      return res.status(200).json({
+        message: "Logged out successfully",
+        success: true,
+      });
+    } else {
+      return res.status(400).json({
+        message: "Invalid refresh token",
+        success: false,
+      });
+    }
+  } catch (error) {
+    console.error("Logout error:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+    });
+  }
+}
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({
+      message: "Email is required",
+      success: false,
+    });
+  }
+  try {
+    const user = await getUserById(req.user?.userId);
+    if (!user) {
+      return res.status(400).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+    const token = generateEmailVerificationToken();
+    await createResetToken(req.user?.userId, token);
+    await sendPasswordResetEmail(user.email, token);
+    return res.status(200).json({
+      message: "Password reset email sent successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+    });
+  }
+}
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const { token, newPassword } = req.body;
+  if (!token || !newPassword) {
+    return res.status(400).json({
+      message: "Token and new password are required",
+      success: false,
+    });
+  }
+  try {
+    const user = await getUserByResetToken(token);
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid token or token expired",
+        success: false,
+      });
+    }
+    const hashPwd = await bcrypt.hash(newPassword, 10);
+    await updateUserPassword(req.user?.userId, hashPwd);
+    await sendPasswordResetSuccessEmail(user.email);
+    await deletePasswordVerification(req.user?.userId);
+    return res.status(200).json({
+      message: "Password reset successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+    });
+  }
+}
+
+export const updateProfile = async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+  const { username, phone_number, date_of_birth, gender, profile_url } = req.body;
+  if (!userId) {
+    return res.status(401).json({
+      message: "Unauthorized",
+      success: false,
+    });
+  }
+  try {
+    const updatedUser = await updateUserProfile(userId, {
+      username,
+      phone_number,
+      date_of_birth,
+      gender,
+      profile_url,
+    });
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      success: true,
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+    });
   }
 };

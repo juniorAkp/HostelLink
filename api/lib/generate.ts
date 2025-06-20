@@ -1,17 +1,17 @@
 import jwt from "jsonwebtoken";
 
-export function generateAccessToken(userId: string): string{
+export function generateAccessToken(userId: string, role:string): string{
   // Generate a JWT token with userId as payload
-  return jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET!, {
+  return jwt.sign({ userId,role }, process.env.ACCESS_TOKEN_SECRET!, {
     subject: "accessToken",
     
     expiresIn:"15m" // Token expires in 15 minutes
   });
 }
 
-export function generateRefreshToken(userId: string): string {
+export function generateRefreshToken(userId: string, role:string): string {
   // Generate a JWT token with userId as payload
-  return jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET!, {
+  return jwt.sign({ userId,role }, process.env.REFRESH_TOKEN_SECRET!, {
     subject: "refreshToken",
     expiresIn: "7d" // Token expires in 7 days
   });
