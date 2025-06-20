@@ -4,8 +4,8 @@ export function generateAccessToken(userId: string, role:string): string{
   // Generate a JWT token with userId as payload
   return jwt.sign({ userId,role }, process.env.ACCESS_TOKEN_SECRET!, {
     subject: "accessToken",
-    
-    expiresIn:"15m" // Token expires in 15 minutes
+
+    expiresIn:"30m" // Token expires in 30 minutes
   });
 }
 

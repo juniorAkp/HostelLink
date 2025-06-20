@@ -6,6 +6,7 @@ import {
   createUser,
   deletePasswordVerification,
   deleteToken,
+  getUserByEmail,
   getUserById,
   getUserByResetToken,
   getUserByToken,
@@ -216,7 +217,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     });
   }
   try {
-    const user = await getUserById(req.user?.userId);
+    const user = await getUserByEmail(email);
     if (!user) {
       return res.status(400).json({
         message: "User not found",
@@ -224,7 +225,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
       });
     }
     const token = generateEmailVerificationToken();
-    await createResetToken(req.user?.userId, token);
+    await createResetToken(user.id, token);
     await sendPasswordResetEmail(user.email, token);
     return res.status(200).json({
       message: "Password reset email sent successfully",
@@ -240,8 +241,8 @@ export const forgotPassword = async (req: Request, res: Response) => {
 }
 
 export const resetPassword = async (req: Request, res: Response) => {
-  const { token, newPassword } = req.body;
-  if (!token || !newPassword) {
+  const { token, password } = req.body;
+  if (!token || !password) {
     return res.status(400).json({
       message: "Token and new password are required",
       success: false,
@@ -249,16 +250,16 @@ export const resetPassword = async (req: Request, res: Response) => {
   }
   try {
     const user = await getUserByResetToken(token);
+    console.log("User found:", user);
     if (!user) {
       return res.status(400).json({
         message: "Invalid token or token expired",
         success: false,
       });
     }
-    const hashPwd = await bcrypt.hash(newPassword, 10);
-    await updateUserPassword(req.user?.userId, hashPwd);
+    await updateUserPassword(user.id, password);
     await sendPasswordResetSuccessEmail(user.email);
-    await deletePasswordVerification(req.user?.userId);
+    await deletePasswordVerification(user.id);
     return res.status(200).json({
       message: "Password reset successfully",
       success: true,

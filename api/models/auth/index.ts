@@ -53,6 +53,9 @@ export const loginUser = async (email: string, password: string) => {
     }
     const user = result[0];
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log("password:", password);
+    console.log("userpassword:", user.password);
+    console.log("is match:", isMatch);
     if (!isMatch) {
       throw new Error("Invalid credentials");
     }
@@ -192,9 +195,9 @@ export const getUserByResetToken = async (resetToken: number) => {
   }
 }
 
-export const updateUserPassword = async (userId: number, newPassword: string) => {
+export const updateUserPassword = async (userId: number, password: string) => {
   try {
-    const hashPwd = await bcrypt.hash(newPassword, 10);
+    const hashPwd = await bcrypt.hash(password, 10);
     const result = await sql`
       UPDATE users SET password = ${hashPwd}, reset_token = NULL, reset_token_expiry = NULL WHERE id = ${userId}
       RETURNING id, username, email, is_verified, role;

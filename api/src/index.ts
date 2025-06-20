@@ -1,6 +1,7 @@
 import express from "express";
 import { initDb } from "../helpers/initDb";
 import router from "../routes/auth";
+import { router as hostelRouter } from "../routes/hostels";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -8,10 +9,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
-  res.send("Hello, World!");
+  res.json({ message: "Welcome to the HostelLink API" });
 });
 
 app.use("/api/auth", router);
+app.use("/api/hostels", hostelRouter);
 
 app.listen(PORT, async () => {
   await initDb();

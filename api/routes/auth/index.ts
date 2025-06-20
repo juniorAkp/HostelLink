@@ -9,8 +9,8 @@ router.post("/login", login);
 router.post("/verify-email", verifyEmail);
 router.post("/refresh",refreshAccessToken)
 router.post("/logout",protect, logout);
-router.post("/forgot-password", protect, forgotPassword);
-router.post("/reset-password", protect, resetPassword);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 router.post("/update-profile", protect, updateProfile);
 
   

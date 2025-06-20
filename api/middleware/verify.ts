@@ -54,7 +54,7 @@ export const adminProtect = (req: Request, res: Response, next: NextFunction) =>
   try {
     const decoded = verifyToken(token);
     if (typeof decoded !== 'object' || decoded === null || (decoded as jwt.JwtPayload).role !== 'admin') {
-      return res.status(403).json({ message: "Forbidden", success: false });
+      return res.status(403).json({ message: "Forbidden access", success: false });
     }
     req.user = decoded;
     next();
