@@ -54,7 +54,7 @@ export const initDb = async () => {
         student_id VARCHAR(50) UNIQUE,
         date_of_birth DATE,
         phone_number VARCHAR(15),
-        gender room_gender DEFAULT 'male',
+        gender room_gender  NOT NULL,
         profile_url VARCHAR(255),
         is_verified BOOLEAN DEFAULT FALSE,
         verification_token SMALLINT,
@@ -150,6 +150,13 @@ export const initDb = async () => {
       );
     `;
 
+    await sql`CREATE TABLE IF NOT EXISTS tokens (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      token VARCHAR(255) NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );`;
     console.log("Database initialized successfully with all tables created");
   } catch (error) {
     console.error("Error initializing database:", error);
