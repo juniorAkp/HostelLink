@@ -1,12 +1,17 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import { createUser, getUserByToken, loginUser, updateUserVerification } from "../models/auth";
+import {
+  createUser,
+  getUserByToken,
+  loginUser,
+  updateUserVerification,
+} from "../models/auth";
 import {
   generateAccessToken,
   generateEmailVerificationToken,
   generateRefreshToken,
 } from "../lib/generate";
-import { sendVerificationEmail } from "../helpers/sendMails";
+import { sendVerificationEmail, sendWelcomeEmail } from "../helpers/sendMails";
 
 export const register = async (req: Request, res: Response) => {
   // get user data from request body
@@ -26,12 +31,10 @@ export const register = async (req: Request, res: Response) => {
   }
   // validate password length
   if (password.length < 8) {
-    return res
-      .status(400)
-      .json({
-        message: "Password must be at least 8 characters long",
-        success: false,
-      });
+    return res.status(400).json({
+      message: "Password must be at least 8 characters long",
+      success: false,
+    });
   }
   try {
     // hash password
@@ -83,15 +86,13 @@ export const login = async (req: Request, res: Response) => {
     // generate access token
     const accessToken = generateAccessToken(user.id);
     const refreshToken = generateRefreshToken(user.id);
-    return res
-      .status(200)
-      .json({
-        message: "Login successful",
-        user,
-        accessToken,
-        refreshToken,
-        success: true,
-      });
+    return res.status(200).json({
+      message: "Login successful",
+      user,
+      accessToken,
+      refreshToken,
+      success: true,
+    });
   } catch (error) {
     return res
       .status(500)
@@ -99,7 +100,7 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const verifyEmail = async (req: Request, res: Response) => { 
+export const verifyEmail = async (req: Request, res: Response) => {
   try {
     //get token from body
     const { token } = req.body;
@@ -117,14 +118,24 @@ export const verifyEmail = async (req: Request, res: Response) => {
         .json({ message: "Invalid token or token expired", success: false });
     }
     //update user is_verified to true
+
     const updatedUser = await updateUserVerification(user.id, true);
+    const accessToken = generateAccessToken(updatedUser.id);
+    const refreshToken = generateRefreshToken(updatedUser.id);
+    await sendWelcomeEmail(updatedUser.email, updatedUser.username);
     return res
       .status(200)
-      .json({ message: "Email verified successfully", user: updatedUser, success: true });
+      .json({
+        message: "Email verified successfully",
+        user: updatedUser,
+        accessToken,
+        refreshToken,
+        success: true,
+      });
   } catch (error) {
     console.error("Error verifying email:", error);
     return res
       .status(500)
       .json({ message: "Internal server error", success: false });
   }
-}
+};

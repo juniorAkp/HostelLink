@@ -20,7 +20,6 @@ interface User {
   updated_at?: Date;
 }
 
-//insert into users table
 export const createUser = async (user: User) => {
   try {
     //check if user already exists
