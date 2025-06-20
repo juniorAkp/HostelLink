@@ -6,6 +6,12 @@ interface User {
   hashPwd: string;
   gender: string;
   student_id?: string;
+  is_verified?: boolean;
+  role?: string; // e.g., 'student', 'teacher', 'admin'
+  verification_token?: number;
+  verification_token_expiry?: Date; // to store the expiry time of the verification token
+  reset_token?: number; // to store the password reset token
+  reset_token_expiry?: Date; // to store the expiry time of the reset token
   token?: number;
   date_of_birth?: Date;
   phone_number?: string;
@@ -50,3 +56,34 @@ export const loginUser = async (email: string, password: string) => {
     throw new Error("Failed to log in user");
   }
 };
+
+export const getUserByToken = async (token: number) => {
+  try {
+    const result = await sql`
+      SELECT * FROM users WHERE verification_token = ${token} AND verification_token_expiry > NOW()
+    `;
+    if (result.length === 0) {
+      throw new Error("Invalid token or token expired");
+    }
+    return result[0];
+  } catch (error) {
+    console.error("Error getting user by token:", error);
+    throw new Error("Failed to get user by token");
+  }
+};
+
+export const updateUserVerification = async (userId: number, isVerified: boolean) => {
+  try {
+    const result = await sql`
+      UPDATE users SET is_verified = ${isVerified}, verification_token = NULL, verification_token_expiry = NULL WHERE id = ${userId}
+      RETURNING id, username, email, is_verified;
+    `;
+    if (result.length === 0) {
+      throw new Error("User not found");
+    }
+    return result[0];
+  } catch (error) {
+    console.error("Error updating user verification:", error);
+    throw new Error("Failed to update user verification");
+  }
+}
