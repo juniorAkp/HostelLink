@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { forgotPassword, login, logout, refreshAccessToken, register, resetPassword, updateProfile, verifyEmail } from "../../controllers/auth";
-import { protect, verifyToken } from "../../middleware/verify";
+import { protect } from "../../middleware/verify";
 
 const router:any = Router();
 
