@@ -5,16 +5,17 @@ interface Room {
   amenities: string[];
   roomGender: string;
   capacity: number;
+  roomsAvailable: number;
   roomPrice: number;
   isBookable?: boolean;
 }
 
 export const addRoomToHostel = async (hostelId: string, roomData: Room) => {
   try {
-    const { roomNumber, amenities, roomGender, capacity, roomPrice } = roomData;
+    const { roomNumber, amenities, roomGender, capacity, roomPrice, roomsAvailable } = roomData;
     const result = await sql`
-      INSERT INTO rooms (hostel_id, room_number, amenities, gender, capacity, price, created_at)
-      VALUES (${hostelId}, ${roomNumber}, ${amenities}, ${roomGender}, ${capacity}, ${roomPrice}, Now())
+      INSERT INTO rooms (hostel_id, room_number, amenities, gender, capacity, price, created_at, rooms_available)
+      VALUES (${hostelId}, ${roomNumber}, ${amenities}, ${roomGender}, ${capacity}, ${roomPrice}, Now(), ${roomsAvailable})
       RETURNING *;
     `;
     return result[0];
@@ -106,3 +107,22 @@ export const getAvailableRoomsfromDb = async (hostelId: string) => {
     throw new Error("Unable to fetch available rooms");
   }
 };
+
+export const updateRoomAvailability = async (roomId: string) => {
+  //update room is_bookable to false
+  try {
+    // check if room_available is greater than 0 before updating
+    const room = await sql`
+      SELECT * FROM rooms WHERE id = ${roomId};
+    `;
+    if (room[0].rooms_available === 0) {
+      await sql`
+        UPDATE rooms SET is_bookable = false WHERE id = ${roomId};
+      `;
+    }
+  } catch (error) {
+    console.error("Error updating room availability:", error);
+    throw new Error("Unable to update room availability");
+    
+  }
+}

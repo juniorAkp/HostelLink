@@ -86,6 +86,7 @@ export const initDb = async () => {
         id SERIAL PRIMARY KEY,
         hostel_id INTEGER REFERENCES hostels(id) ON DELETE CASCADE,
         capacity INTEGER NOT NULL,
+        rooms_available INTEGER NOT NULL DEFAULT 0 CHECK (rooms_available >= 0),
         gender room_gender NOT NULL,
         room_number VARCHAR(10) NOT NULL,
         price DECIMAL(10, 2) NOT NULL,
@@ -114,6 +115,7 @@ export const initDb = async () => {
     await sql`
       CREATE TABLE IF NOT EXISTS payments (
         id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE,
         amount DECIMAL(10, 2) NOT NULL,
         status payment_status DEFAULT 'pending',

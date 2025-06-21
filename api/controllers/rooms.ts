@@ -44,6 +44,7 @@ export const createRoom = async (req: Request, res: Response) => {
     const newRoom = await addRoomToHostel(hostelId, {
       roomNumber: number,
       amenities,
+      roomsAvailable: capacity,
       roomGender,
       capacity: capacity,
       roomPrice,
