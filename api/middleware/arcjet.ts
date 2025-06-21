@@ -7,6 +7,9 @@ export const arcjetProtect = async (
   next: NextFunction
 ) => {
   try {
+    if (process.env.NODE_ENV === "development") {
+      return next(); 
+    }
     const decision = await aj.protect(req, { requested: 3 });
 
     if (decision.isDenied()) {
