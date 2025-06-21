@@ -18,12 +18,12 @@ router.post(
   createHostel
 );
 router.get("/get-hostels", getHostels);
-router.get("/get-hostel/:id", getHostelById);
+router.get("/get-hostel/:hostelId", getHostelById);
 router.put(
-  "/update-hostel/:id",
+  "/update-hostel/:hostelId",
   upload.single("image"),
   protect,
   adminProtect,
   updateHostel
 );
-router.delete("/delete-hostel/:id", protect, adminProtect, deleteHostel);
+router.delete("/delete-hostel/:hostelId", protect, adminProtect, deleteHostel);

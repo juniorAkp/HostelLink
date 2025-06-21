@@ -26,12 +26,6 @@ export const initDb = async () => {
       await sql`CREATE TYPE room_gender AS ENUM ('male', 'female');`;
     }
 
-    const roomTypeExists =
-      await sql`SELECT 1 FROM pg_type WHERE typname = 'room_type'`;
-    if (roomTypeExists.length === 0) {
-      await sql`CREATE TYPE room_type AS ENUM ('single', 'double', 'suite');`;
-    }
-
     const paymentStatusExists =
       await sql`SELECT 1 FROM pg_type WHERE typname = 'payment_status'`;
     if (paymentStatusExists.length === 0) {
@@ -91,7 +85,7 @@ export const initDb = async () => {
       CREATE TABLE IF NOT EXISTS rooms (
         id SERIAL PRIMARY KEY,
         hostel_id INTEGER REFERENCES hostels(id) ON DELETE CASCADE,
-        room_type room_type NOT NULL,
+        capacity INTEGER NOT NULL,
         gender room_gender NOT NULL,
         room_number VARCHAR(10) NOT NULL,
         price DECIMAL(10, 2) NOT NULL,

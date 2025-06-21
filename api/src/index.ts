@@ -2,6 +2,7 @@ import express from "express";
 import { initDb } from "../helpers/initDb";
 import router from "../routes/auth";
 import { router as hostelRouter } from "../routes/hostels";
+import { roomsRouter } from "../routes/rooms";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -14,6 +15,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", router);
 app.use("/api/hostels", hostelRouter);
+app.use("/api/rooms", roomsRouter);
 
 app.listen(PORT, async () => {
   await initDb();

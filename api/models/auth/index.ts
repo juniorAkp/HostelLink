@@ -308,7 +308,7 @@ export const getUserDetails = async (userId: number) => {
         created_at,
         last_login,
         ghana_card_number,
-        is_verified,
+        is_verified
       FROM users WHERE id = ${userId}
     `;
     if (result.length === 0) {

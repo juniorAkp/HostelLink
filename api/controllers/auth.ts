@@ -21,8 +21,14 @@ import {
   generateEmailVerificationToken,
   generateRefreshToken,
 } from "../lib/generate";
-import { sendPasswordResetEmail, sendPasswordResetSuccessEmail, sendVerificationEmail, sendWelcomeEmail } from "../helpers/sendMails";
+import {
+  sendPasswordResetEmail,
+  sendPasswordResetSuccessEmail,
+  sendVerificationEmail,
+  sendWelcomeEmail,
+} from "../helpers/sendMails";
 import { verifyRefreshToken, verifyToken } from "../middleware/verify";
+import cloudinaryConfig from "../config/cloudinary";
 
 export const register = async (req: Request, res: Response) => {
   // get user data from request body
@@ -124,15 +130,13 @@ export const verifyEmail = async (req: Request, res: Response) => {
     const refreshToken = generateRefreshToken(updatedUser.id, updatedUser.role);
     await createToken(user.id, refreshToken);
     await sendWelcomeEmail(updatedUser.email, updatedUser.username);
-    return res
-      .status(200)
-      .json({
-        message: "Email verified successfully",
-        user: updatedUser,
-        accessToken,
-        refreshToken,
-        success: true,
-      });
+    return res.status(200).json({
+      message: "Email verified successfully",
+      user: updatedUser,
+      accessToken,
+      refreshToken,
+      success: true,
+    });
   } catch (error) {
     console.error("Error verifying email:", error);
     return res
@@ -142,7 +146,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
 };
 
 export const refreshAccessToken = async (req: Request, res: Response) => {
-  const {refreshToken: oldRefreshToken} = req.body;
+  const { refreshToken: oldRefreshToken } = req.body;
   if (!oldRefreshToken) {
     return res.status(400).json({
       message: "Refresh token is required",
@@ -151,9 +155,20 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
   }
   try {
     const decoded = verifyRefreshToken(oldRefreshToken);
-    if (typeof decoded === "object" && decoded !== null && "userId" in decoded && "role" in decoded) {
-      const newAccessToken = generateAccessToken((decoded as any).userId, (decoded as any).role);
-      const newRefreshToken = generateRefreshToken((decoded as any).userId, (decoded as any).role);
+    if (
+      typeof decoded === "object" &&
+      decoded !== null &&
+      "userId" in decoded &&
+      "role" in decoded
+    ) {
+      const newAccessToken = generateAccessToken(
+        (decoded as any).userId,
+        (decoded as any).role
+      );
+      const newRefreshToken = generateRefreshToken(
+        (decoded as any).userId,
+        (decoded as any).role
+      );
       await deleteToken((decoded as any).userId, oldRefreshToken);
       await createToken((decoded as any).userId, newRefreshToken);
       return res.status(200).json({
@@ -175,8 +190,8 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
       success: false,
     });
   }
-}
- 
+};
+
 export const logout = async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
   if (!refreshToken) {
@@ -187,7 +202,11 @@ export const logout = async (req: Request, res: Response) => {
   }
   try {
     const decoded = verifyToken(refreshToken);
-    if (typeof decoded === "object" && decoded !== null && "userId" in decoded) {
+    if (
+      typeof decoded === "object" &&
+      decoded !== null &&
+      "userId" in decoded
+    ) {
       await deleteToken((decoded as any).userId, refreshToken);
       return res.status(200).json({
         message: "Logged out successfully",
@@ -206,7 +225,7 @@ export const logout = async (req: Request, res: Response) => {
       success: false,
     });
   }
-}
+};
 
 export const forgotPassword = async (req: Request, res: Response) => {
   const { email } = req.body;
@@ -238,7 +257,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
       success: false,
     });
   }
-}
+};
 
 export const resetPassword = async (req: Request, res: Response) => {
   const { token, password } = req.body;
@@ -271,11 +290,12 @@ export const resetPassword = async (req: Request, res: Response) => {
       success: false,
     });
   }
-}
+};
 
 export const updateProfile = async (req: Request, res: Response) => {
   const userId = req.user?.userId;
-  const { username, phone_number, date_of_birth, gender, profile_url } = req.body;
+  const { username, phone_number, date_of_birth, gender } =
+    req.body;
   if (!userId) {
     return res.status(401).json({
       message: "Unauthorized",
@@ -283,12 +303,21 @@ export const updateProfile = async (req: Request, res: Response) => {
     });
   }
   try {
+    const existingUser = await getUserById(userId)
+    const imageUrl = req.file
+      ? (
+          await cloudinaryConfig.uploader.upload(req.file.path, {
+            folder: "users",
+            resource_type: "image",
+          })
+        ).secure_url
+      : existingUser?.imageUrl || "";
     const updatedUser = await updateUserProfile(userId, {
       username,
       phone_number,
       date_of_birth,
       gender,
-      profile_url,
+      profile_url: imageUrl,
     });
     return res.status(200).json({
       message: "Profile updated successfully",
@@ -326,4 +355,4 @@ export const getUserProfile = async (req: Request, res: Response) => {
       success: false,
     });
   }
-}
+};

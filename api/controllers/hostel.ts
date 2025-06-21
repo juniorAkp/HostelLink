@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { addAdminToHostel, addHostel, deleteHostelfromDb, editHostel, fetchHostels } from "../models/hostels";
+import { addAdminToHostel, addHostel, deleteHostelfromDb, editHostel, fetchHostels, getHostelByIdFromDb } from "../models/hostels";
 import cloudinaryConfig from "../config/cloudinary";
 
 export const createHostel = async (req: Request, res: Response) => {
@@ -65,11 +65,9 @@ export const getHostels = async (req: Request, res: Response) => {
   }
 };
 export const getHostelById = async (req: Request, res: Response) => {
-  const hostelId = req.params.id;
+  const { hostelId } = req.params;
   try {
-    const hostel = await fetchHostels().then((hostels) =>
-      hostels.find((h) => h.id === hostelId)
-    );
+    const hostel = await getHostelByIdFromDb(hostelId);
     if (!hostel) {
       return res
         .status(404)
@@ -84,45 +82,32 @@ export const getHostelById = async (req: Request, res: Response) => {
   }
 };
 export const updateHostel = async (req: Request, res: Response) => {
-  const hostelId = req.params.id;
+  const { hostelId } = req.params;
   const { name, description, location, latitude, longitude, capacity, status, isBookable } =
     req.body;
 
-  // Validate required fields
-  if (
-    !name ||
-    !description ||
-    !location ||
-    !latitude ||
-    !longitude ||
-    !capacity ||
-    status === undefined ||
-    isBookable === undefined
-  ) {
-    return res
-      .status(400)
-      .json({ message: "All fields are required", success: false });
-  }
+  // // Validate latitude and longitude
+  // if (typeof latitude !== "number" || typeof longitude !== "number") {
+  //   return res.status(400).json({
+  //     message: "Latitude and longitude must be numbers",
+  //     success: false,
+  //   });
+  // }
 
-  // Validate latitude and longitude
-  if (typeof latitude !== "number" || typeof longitude !== "number") {
-    return res.status(400).json({
-      message: "Latitude and longitude must be numbers",
-      success: false,
-    });
-  }
-
-  // Validate capacity
-  if (typeof capacity !== "number" || capacity <= 0) {
-    return res
-      .status(400)
-      .json({ message: "Capacity must be a positive number", success: false });
-  }
+  // // Validate capacity
+  // if (typeof capacity !== "number" || capacity <= 0) {
+  //   return res
+  //     .status(400)
+  //     .json({ message: "Capacity must be a positive number", success: false });
+  // }
   try {
     // Fetch the existing hostel to get the current imageUrl if no new file is uploaded
-    const existingHostel = await fetchHostels().then((hostels) =>
-      hostels.find((h) => h.id === hostelId)
-    );
+    const existingHostel = await getHostelByIdFromDb(hostelId);
+    if (!existingHostel) {
+      return res
+        .status(404)
+        .json({ message: "Hostel not found", success: false });
+    }
     const imageUrl = req.file
       ? (
           await cloudinaryConfig.uploader.upload(req.file.path, {
@@ -130,7 +115,7 @@ export const updateHostel = async (req: Request, res: Response) => {
             resource_type: "image",
           })
         ).secure_url
-      : existingHostel?.imageUrl || "";
+      : existingHostel?.image_url || "";
 
     const updatedHostel = await editHostel(hostelId, {
       name,
@@ -156,17 +141,16 @@ export const updateHostel = async (req: Request, res: Response) => {
   }
 };
 export const deleteHostel = async (req: Request, res: Response) => {
-  const hostelId = req.params.id;
+  const { hostelId } = req.params;
   try {
-    const result = await fetchHostels().then((hostels) =>
-      hostels.filter((h) => h.id !== hostelId)
-    );
-    if (result.length === 0) {
+    const result = await getHostelByIdFromDb(hostelId);
+    // console.log("result", result[0].image_url);
+    if (!result || result.length === 0) { 
       return res
         .status(404)
         .json({ message: "Hostel not found", success: false });
     }
-    await cloudinaryConfig.uploader.destroy(result[0].imageUrl, {
+    await cloudinaryConfig.uploader.destroy(result.image_url, {
       resource_type: "image",
     });
     await deleteHostelfromDb(hostelId);

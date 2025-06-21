@@ -100,12 +100,24 @@ export const deleteHostelfromDb = async (hostelId: string) => {
 export const addAdminToHostel = async (hostelId: string, adminId: string) => {
   try {
     await sql`
-      INSERT INTO hostel_admins (hostel_id, admin_id, created_at)
+      INSERT INTO hostel_owners (hostel_id, user_id, created_at)
       VALUES (${hostelId}, ${adminId}, NOW())
       RETURNING *;
     `;
   } catch (error) {
     console.error("Error adding admin to hostel:", error);
     throw new Error("Failed to add admin to hostel");
+  }
+}
+
+export const getHostelByIdFromDb = async (hostelId: string) => {
+  try {
+    const result = await sql`
+      SELECT * FROM hostels WHERE id = ${hostelId};
+    `;
+    return result[0];
+  } catch (error) {
+    console.error("Error fetching hostel by ID:", error);
+    throw new Error("Failed to fetch hostel");
   }
 }
