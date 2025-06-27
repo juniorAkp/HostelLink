@@ -89,6 +89,12 @@ export const login = async (req: Request, res: Response) => {
 
   try {
     const user = await loginUser(email, password);
+    if (!user) {
+      return res.status(400).json({
+        message: "no user found with this email or password",
+        success: false,
+      });
+    }
     const accessToken = generateAccessToken(user.id.toString(), user.role);
     const refreshToken = generateRefreshToken(user.id.toString(), user.role);
     await createToken(user.id, refreshToken);
@@ -100,11 +106,19 @@ export const login = async (req: Request, res: Response) => {
       success: true,
     });
   } catch (error) {
-    console.error("Login error:", error);
-    return res.status(500).json({
-      message: "Internal server error",
-      success: false,
-    });
+    if (error instanceof Error) {
+      if (error.message === "Invalid credentials") {
+        return res.status(400).json({
+          message: "Invalid email or password",
+          success: false,
+        });
+      }
+    } else {
+      return res.status(500).json({
+        message: "Internal server error",
+        success: false,
+      });
+    }
   }
 };
 
@@ -122,7 +136,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
     const user = await getUserByToken(token);
     if (!user) {
       return res
-        .status(400)
+        .status(401)
         .json({ message: "Invalid token or token expired", success: false });
     }
     const updatedUser = await updateUserVerification(user.id, true);
@@ -294,8 +308,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
 export const updateProfile = async (req: Request, res: Response) => {
   const userId = req.user?.userId;
-  const { username, phone_number, date_of_birth, gender } =
-    req.body;
+  const { username, phone_number, date_of_birth, gender } = req.body;
   if (!userId) {
     return res.status(401).json({
       message: "Unauthorized",
@@ -303,7 +316,7 @@ export const updateProfile = async (req: Request, res: Response) => {
     });
   }
   try {
-    const existingUser = await getUserById(userId)
+    const existingUser = await getUserById(userId);
     const imageUrl = req.file
       ? (
           await cloudinaryConfig.uploader.upload(req.file.path, {

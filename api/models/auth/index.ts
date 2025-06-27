@@ -53,9 +53,6 @@ export const loginUser = async (email: string, password: string) => {
     }
     const user = result[0];
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log("password:", password);
-    console.log("userpassword:", user.password);
-    console.log("is match:", isMatch);
     if (!isMatch) {
       throw new Error("Invalid credentials");
     }
@@ -71,8 +68,9 @@ export const loginUser = async (email: string, password: string) => {
 
     return userWithoutSensitiveData;
   } catch (error) {
-    console.error("Error logging in user:", error);
-    throw new Error("Failed to log in user");
+    if (error instanceof Error && error.message === "Invalid credentials") {
+      throw new Error("Invalid credentials");
+    }
   }
 };
 

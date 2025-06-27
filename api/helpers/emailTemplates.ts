@@ -19,7 +19,7 @@ export const VERIFICATION_EMAIL_TEMPLATE = `
     <p>Enter this code on the verification page to complete your registration.</p>
     <p>This code will expire in 1 hour for security reasons.</p>
     <p>If you didn't create an account with us, please ignore this email.</p>
-    <p>Best regards,<br>Your App Team</p>
+    <p>Best regards,<br>HostelLink</p>
   </div>
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
     <p>This is an automated message, please do not reply to this email.</p>
@@ -33,11 +33,11 @@ export const WELCOME_EMAIL_TEMPLATE = `
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to Our Platform</title>
+  <title>Welcome to HostelLink</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(to right, #4CAF50, #45a049); padding: 20px; text-align: center;">
-    <h1 style="color: white; margin: 0;">Welcome to Our Community!</h1>
+    <h1 style="color: white; margin: 0;">Welcome to Our HostelLink!</h1>
   </div>
   <div style="background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
     <p>Hello <strong>{userName}</strong>,</p>
@@ -46,11 +46,13 @@ export const WELCOME_EMAIL_TEMPLATE = `
     <ul>
       <li>Explore our platform and discover amazing features.</li>
       <li>Set up your profile to get started.</li>
-      <li>Stay connected and enjoy exclusive content.</li>
+      <li>Book your first stay with us.</li>
+      <li>Check out our <a href="{helpLink}" style="color: #4CAF50; text-decoration: none;">help center</a> for tips and guides.</li>
+      <li>Follow us on social media for updates and offers.</li>
     </ul>
     <p>If you have any questions, feel free to reach out to our support team.</p>
     <p>We're thrilled to have you on board!</p>
-    <p>Best regards,<br>Your App Team</p>
+    <p>Best regards,<br>HostelLink</p>
   </div>
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
     <p>This is an automated message, please do not reply to this email.</p>
@@ -83,11 +85,10 @@ export const PASSWORD_RESET_SUCCESS_TEMPLATE = `
     <p>For security reasons, we recommend that you:</p>
     <ul>
       <li>Use a strong, unique password</li>
-      <li>Enable two-factor authentication if available</li>
       <li>Avoid using the same password across multiple sites</li>
     </ul>
     <p>Thank you for helping us keep your account secure.</p>
-    <p>Best regards,<br>Your App Team</p>
+    <p>Best regards,<br>HostelLink</p>
   </div>
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
     <p>This is an automated message, please do not reply to this email.</p>
@@ -118,7 +119,7 @@ export const PASSWORD_RESET_REQUEST_TEMPLATE = `
       </div>
     </div>
     <p>This code is valid for 1 hour.</p>
-    <p>Best regards,<br>Your App Team</p>
+    <p>Best regards,<br>HostelLink</p>
   </div>
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
     <p>This is an automated message. Please do not reply.</p>

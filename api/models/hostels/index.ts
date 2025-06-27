@@ -41,7 +41,7 @@ export const fetchHostels = async (searchTerm?: string) => {
   try {
     const result = await sql`
       SELECT * FROM hostels
-      ${searchTerm ? sql`WHERE name LIKE ${"%" + searchTerm + "%"}` : sql``}
+      ${searchTerm ? sql`WHERE name ILIKE ${"%" + searchTerm + "%"}` : sql``}
     `;
     return result;
   } catch (error) {

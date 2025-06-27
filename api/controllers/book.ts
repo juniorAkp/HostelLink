@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { sql } from "../config/db";
 import { getRoomByIdfromDb, updateRoomAvailability } from "../models/room";
 import { Paystack } from "paystack-sdk";
+import { getAllAdminBookingsfromDb, getUserBookingsfromDb } from "../models/book";
 
 const paystack = new Paystack(process.env.PAYSTACK_SECRET_KEY!);
 
@@ -27,23 +28,23 @@ export const bookroom = async (req: Request, res: Response) => {
       await sql`BEGIN`
         .then(async () => {
           [booking] = await sql`
-          INSERT INTO bookings (user_id, room_id, hostel_id, start_date, end_date, total_amount, created_at)
-          VALUES (${req.user?.userId}, ${roomId}, ${
+          INSERT INTO bookings (user_id, room_id, hostel_id, start_date, end_date, total_amount)
+          VALUES (${req.user?.userId as number}, ${roomId}, ${
             room.hostel_id
           }, ${startDate}, ${endDate}, ${
             room.price 
-          }, NOW()) RETURNING id, user_id`;
+          }) RETURNING id, user_id`;
 
           [payment] = await sql`
-          INSERT INTO payments (user_id, booking_id, amount, created_at)
-          VALUES (${booking.user_id}, ${booking.id}, ${
+          INSERT INTO payments (user_id, booking_id, amount)
+          VALUES (${booking.user_id as number}, ${booking.id}, ${
             totalAmount
-          }, NOW()) RETURNING id, user_id`;
+          }) RETURNING id, user_id`;
 
           // create notification
           [notification] = await sql`
-          INSERT INTO notifications (user_id, message, created_at)
-          VALUES (${booking.user_id}, 'Your booking has been confirmed', NOW()) RETURNING id`;
+          INSERT INTO notifications (user_id, message)
+          VALUES (${booking.user_id as number}, 'Your booking has been confirmed') RETURNING id`;
 
           // Commit the transaction
           await sql`COMMIT`;
@@ -53,9 +54,9 @@ export const bookroom = async (req: Request, res: Response) => {
           await sql`ROLLBACK`;
           throw new Error("Booking transaction failed");
         });
-      console.log("totalAmount:", totalAmount); // Convert to kobo for Paystack
+      
       const payOrders = await paystack.transaction.initialize({
-        amount: totalAmount.toString(),
+        amount: totalAmount as unknown as string,
         email: email,
         reference: `TXN-${Date.now()}`,
         callback_url: "https://dcit208.com/payment-success",
@@ -75,12 +76,12 @@ export const bookroom = async (req: Request, res: Response) => {
       // Rollback the transaction if any error occurs
       await sql`ROLLBACK`;
       console.error("Error in booking process:", error);
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Internal server error", success: false });
     }
   } catch (error) {
     await sql`ROLLBACK`;
     console.error("Error fetching room details:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error", success: false });
   }
 };
 
@@ -93,13 +94,13 @@ export const verifyBooking = async (req: Request, res: Response) => {
     const response = await paystack.transaction.verify(transactionId);
 
     if (!response.data || response.data.status !== "success") {
-      return res.status(400).json({ message: "transaction failed" });
+      return res.status(400).json({ message: "transaction failed", success: false });
     }
     const [payments] = await sql`
       SELECT * FROM payments WHERE transaction_id = ${transactionId}
     `;
     if (payments) {
-      return res.status(202).json({ message: "Payment already processed" });
+      return res.status(202).json({ message: "Payment already processed",success:true });
     }
     //Begin transaction
     await sql`BEGIN`
@@ -116,22 +117,51 @@ export const verifyBooking = async (req: Request, res: Response) => {
       `;
         await updateRoomAvailability(response.data.metadata?.roomId as string);
         await sql`
-        INSERT INTO notifications (user_id, message, created_at)
-        VALUES (${response.data.metadata?.userId}, 'Your booking has been completed', NOW())
+        UPDATE notifications SET message = 'Your booking has been completed'
+        WHERE user_id = ${response.data.metadata?.userId}
       `;
         await sql`COMMIT`;
       })
       .catch(async (error) => {
         console.error("Error in confirming booking:", error);
-        await sql`ROLLBACK`;
-        res.status(500).json({ message: "Internal server error" });
-      });
+        try {
+          await sql`ROLLBACK`;
+        } catch (rollbackError) {
+          console.error("Error rolling back transaction:", rollbackError);
+        }
+        res.status(500).json({ message: "Internal server error", success: false });
+      }); 
     return res
       .status(200)
       .json({ message: "Booking verified successfully", success: true });
   } catch (error) {
     console.error("Error verifying booking:", error);
     await sql`ROLLBACK`;
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error", success: false });
   }
 };
+
+export const getUserBookings = async (req: Request, res: Response) => { 
+  try {
+    if (!req.user || !req.user.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const bookings = await getUserBookingsfromDb(req.user?.userId as number);
+    return res.status(200).json({ message: "User bookings fetched successfully", bookings, success:true });
+  } catch (error) {
+    console.error("Error fetching user bookings:", error);
+    res.status(500).json({ message: "Internal server error", success:false });
+  }
+};
+
+export const getAdminBookings = async (req: Request, res: Response) => { 
+  const searchTerm = req.query.search as string | undefined;
+  try {
+    const bookings = await getAllAdminBookingsfromDb(searchTerm);
+    return res.status(200).json({ message: "Admin bookings fetched successfully", bookings, success:true });
+  } catch (error) {
+    console.error("Error fetching admin bookings:", error);
+    res.status(500).json({ message: "Internal server error", success: false });
+    
+  }
+}

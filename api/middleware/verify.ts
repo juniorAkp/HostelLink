@@ -35,13 +35,11 @@ export const protect = (req: Request, res: Response, next: NextFunction) => {
     req.user = decoded;
     next();
   } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError) { 
-      return res.status(401).json({ message: "Invalid token", success: false });
-    }
     if (error instanceof jwt.TokenExpiredError) {
       return res.status(401).json({ message: "Token expired", success: false });
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(401).json({ message: "Invalid token", success: false });
     }
-    return res.status(401).json({ message: error, success: false });
   }
 }
 
@@ -59,12 +57,10 @@ export const adminProtect = (req: Request, res: Response, next: NextFunction) =>
     req.user = decoded;
     next();
   } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError) { 
-      return res.status(401).json({ message: "Invalid token", success: false });
-    }
     if (error instanceof jwt.TokenExpiredError) {
       return res.status(401).json({ message: "Token expired", success: false });
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(401).json({ message: "Invalid token", success: false });
     }
-    return res.status(401).json({ message: error, success: false });
   }
 }

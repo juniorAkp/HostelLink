@@ -165,3 +165,4 @@ export const deleteHostel = async (req: Request, res: Response) => {
       .json({ error: "Internal Server Error", success: false });
   }
 };
+
