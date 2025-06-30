@@ -215,12 +215,13 @@ export const logout = async (req: Request, res: Response) => {
     });
   }
   try {
-    const decoded = verifyToken(refreshToken);
+    const decoded = verifyRefreshToken(refreshToken);
     if (
       typeof decoded === "object" &&
       decoded !== null &&
       "userId" in decoded
     ) {
+      console.log("Decoded userId:", (decoded as any).userId);
       await deleteToken((decoded as any).userId, refreshToken);
       return res.status(200).json({
         message: "Logged out successfully",
@@ -283,7 +284,6 @@ export const resetPassword = async (req: Request, res: Response) => {
   }
   try {
     const user = await getUserByResetToken(token);
-    console.log("User found:", user);
     if (!user) {
       return res.status(400).json({
         message: "Invalid token or token expired",
@@ -359,7 +359,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
     return res.status(200).json({
       message: "User profile retrieved successfully",
       success: true,
-      data: user,
+      user,
     });
   } catch (error) {
     console.error("Error getting user profile:", error);

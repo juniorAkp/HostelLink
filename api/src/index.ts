@@ -7,6 +7,7 @@ import { bookingsRouter } from "../routes/bookings";
 import { arcjetProtect } from "../middleware/arcjet";
 import { notificationsRouter } from "../routes/notifications";
 import { PaymentsRouter } from "../routes/payments";
+import morgan from "morgan";
 import helmet from "helmet";
 
 const app = express();
@@ -14,6 +15,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(morgan("dev"));
 app.use(helmet());
 app.use(arcjetProtect);
 

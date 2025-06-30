@@ -1,5 +1,6 @@
 import CustomButton from "@/components/button";
 import { socialIcons } from "@/contants";
+import { useAuth } from "@/provider/AuthProvider";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -13,15 +14,46 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 const Register = () => {
   const [showPassword, setShowPassword] = React.useState(true);
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [termsAccepted, setTermsAccepted] = React.useState(false);
 
   const router = useRouter();
-  const handleLogin = () => {
-    // Handle login logic here
+  const { handleLogin: login, message, error, isLoading } = useAuth();
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please fill in all fields.",
+      });
+    }
+    try {
+      await login(email, password);
+      if (message) {
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: message,
+        });
+      }
+      if (error) {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: error ?? undefined,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "An unexpected error occurred.",
+      });
+    }
   };
   const handleSocialLogin = (provider: string) => {
     // Handle social login logic here
@@ -104,7 +136,11 @@ const Register = () => {
               </Text>
             </TouchableWithoutFeedback>
           </View>
-          <CustomButton title="Sign In" onPress={handleLogin} />
+          <CustomButton
+            isLoading={isLoading}
+            title="Sign In"
+            onPress={handleLogin}
+          />
         </View>
         <View className="flex items-center justify-center mt-7 px-9">
           <View className="flex flex-row items-center w-full">
