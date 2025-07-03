@@ -5,6 +5,7 @@ const ScreenLayout = () => {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="auth" />
+      <Stack.Screen name="page" />
     </Stack>
   );
 };

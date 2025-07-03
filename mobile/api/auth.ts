@@ -65,6 +65,7 @@ export const logout = async () => {
       return data;
     }
     await SecureStore.deleteItemAsync("accessToken");
+    await SecureStore.deleteItemAsync("refreshToken");
   } catch (error) {
     console.error("Logout error:", error);
     throw error;

@@ -1,5 +1,5 @@
 import CustomButton from "@/components/button";
-import { socialIcons } from "@/contants";
+import { socialIcons } from "@/constants";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import React from "react";

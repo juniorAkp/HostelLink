@@ -8,7 +8,7 @@ import Toast from "react-native-toast-message";
 import "./global.css";
 
 import { AuthProvider, useAuth } from "@/provider/AuthProvider";
-
+import { LocationProvider } from "@/provider/LocationProvider";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -36,7 +36,9 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Layout />
+        <LocationProvider>
+          <Layout />
+        </LocationProvider>
         <Toast
           position="top"
           visibilityTime={3000}

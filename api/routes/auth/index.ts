@@ -11,7 +11,6 @@ import {
   verifyEmail,
 } from "../../controllers/auth";
 import { protect } from "../../middleware/verify";
-import multer from "multer";
 import { upload } from "../../helpers/multer";
 
 const router: any = Router();

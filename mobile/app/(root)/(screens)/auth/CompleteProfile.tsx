@@ -1,5 +1,5 @@
 import CustomButton from "@/components/button";
-import { images } from "@/contants";
+import { images } from "@/constants";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";

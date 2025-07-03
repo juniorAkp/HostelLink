@@ -1,5 +1,5 @@
 import CustomButton from "@/components/button";
-import { socialIcons } from "@/contants";
+import { socialIcons } from "@/constants";
 import { useAuth } from "@/provider/AuthProvider";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
@@ -22,6 +22,7 @@ const Register = () => {
 
   const router = useRouter();
   const { handleLogin: login, message, error, isLoading } = useAuth();
+
   const handleLogin = async () => {
     if (!email || !password) {
       Toast.show({

@@ -76,8 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(true);
       setError(null);
       const data = await login(email, password);
-      console.log("login data:", data);
-      if (data) {
+      if (data.success) {
         setUser(data.user);
         setIsAuthenticated(true);
         setMessage(data.message || "Login successful");

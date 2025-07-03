@@ -46,6 +46,12 @@
             "./assets/fonts/Rubik-SemiBold.ttf"
           ]
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow HostelLink to use your location."
+        }
       ]
     ],
     "experiments": {
